@@ -4,18 +4,6 @@
       "runtime": "nodejs18.x"
     }
   },
-  "build": {
-    "env": {
-      "MONGODB_URI": "@mongodb-uri",
-      "NEXTAUTH_SECRET": "@nextauth-secret"
-    }
-  },
-  "env": {
-    "MONGODB_URI": "@mongodb-uri",
-    "NEXTAUTH_SECRET": "@nextauth-secret",
-    "APP_NAME": "IVAlytics",
-    "APP_DESCRIPTION": "Calcolo semplificato di imposte e contributi"
-  },
   "headers": [
     {
       "source": "/(.*)",
