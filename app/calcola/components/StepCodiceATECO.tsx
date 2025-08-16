@@ -36,7 +36,7 @@ interface Props {
 export default function StepCodiceATECO({ data, onDataChange, onNext, onPrev }: Props) {
   const [ricercaLibera, setRicercaLibera] = useState('');
   const [ricercaDescrizione, setRicercaDescrizione] = useState('');
-  const [codiceSelezionato, setCodiceSelezionato] = useState(data.codiceATECO?.codice || '');
+  const [codiceSelezionato, setCodiceSelezionato] = useState(data.codiceATECO?.codiceAteco || '');
   const [risultatiRicerca, setRisultatiRicerca] = useState<CodiceATECO[]>([]);
   const [risultatiDescrizione, setRisultatiDescrizione] = useState<CodiceATECO[]>([]);
   const [metodiCollapsed, setMetodiCollapsed] = useState(false);
@@ -44,6 +44,7 @@ export default function StepCodiceATECO({ data, onDataChange, onNext, onPrev }: 
   const [loadingDescrizione, setLoadingDescrizione] = useState(false);
   const [erroreRicerca, setErroreRicerca] = useState('');
   const [erroreDescrizione, setErroreDescrizione] = useState('');
+  const [mostraConfermaScelta, setMostraConfermaScelta] = useState(false);
 
   const {
     register,
@@ -54,9 +55,9 @@ export default function StepCodiceATECO({ data, onDataChange, onNext, onPrev }: 
   } = useForm<CodiceATECOForm>({
     resolver: zodResolver(codiceATECOSchema),
     defaultValues: {
-      codiceAteco: data.codiceATECO?.codice || '',
-      descrizioneAttivita: data.codiceATECO?.descrizione || '',
-      dataInizioAttivita: data.codiceATECO?.dataInizio || '',
+      codiceAteco: data.codiceATECO?.codiceAteco || '',
+      descrizioneAttivita: data.codiceATECO?.descrizioneAttivita || '',
+      dataInizioAttivita: data.codiceATECO?.dataInizioAttivita || '',
     },
   });
 
@@ -151,20 +152,34 @@ export default function StepCodiceATECO({ data, onDataChange, onNext, onPrev }: 
     setValue('codiceAteco', codice.codice);
     setValue('descrizioneAttivita', codice.descrizione);
     setRisultatiRicerca([]);
+    setRisultatiDescrizione([]);
     setRicercaLibera('');
+    setRicercaDescrizione('');
+    
+    // Mostra feedback di conferma
+    setMostraConfermaScelta(true);
+    setTimeout(() => setMostraConfermaScelta(false), 3000);
   };
 
   const onSubmit = (formData: CodiceATECOForm) => {
     onDataChange('codiceATECO', {
-      codice: formData.codiceAteco,
-      descrizione: formData.descrizioneAttivita,
-      dataInizio: formData.dataInizioAttivita,
+      codiceAteco: formData.codiceAteco,
+      descrizioneAttivita: formData.descrizioneAttivita,
+      dataInizioAttivita: formData.dataInizioAttivita,
     });
     onNext();
   };
 
   return (
     <div className="space-y-6">
+      {/* Notifica di conferma selezione */}
+      {mostraConfermaScelta && (
+        <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in duration-300">
+          <CheckCircleIcon className="w-5 h-5 text-green-600" />
+          <span className="font-medium">Codice ATECO selezionato con successo!</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center">
         <h2 id="ateco-title" className="text-3xl font-bold text-gray-900 mb-4">
@@ -304,20 +319,37 @@ export default function StepCodiceATECO({ data, onDataChange, onNext, onPrev }: 
       {/* Form dati */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Dati del Codice ATECO</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Dati del Codice ATECO</h3>
+            {codiceSelezionato && (
+              <div className="flex items-center space-x-2 text-green-700 bg-green-100 px-3 py-1 rounded-full text-sm font-medium">
+                <CheckCircleIcon className="w-4 h-4" />
+                <span>Codice selezionato</span>
+              </div>
+            )}
+          </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="form-codice-ateco" className="block text-sm font-medium text-gray-700 mb-2">
                 Codice ATECO
               </label>
-              <input
-                id="form-codice-ateco"
-                {...register('codiceAteco')}
-                readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                placeholder="Seleziona un codice sopra"
-              />
+              <div className="relative">
+                <input
+                  id="form-codice-ateco"
+                  {...register('codiceAteco')}
+                  readOnly
+                  className={`w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600 ${
+                    codiceSelezionato 
+                      ? 'border-green-300 bg-green-50 text-green-800' 
+                      : 'border-gray-300'
+                  }`}
+                  placeholder="Seleziona un codice sopra"
+                />
+                {codiceSelezionato && (
+                  <CheckCircleIcon className="absolute right-3 top-2.5 w-5 h-5 text-green-600" />
+                )}
+              </div>
               {errors.codiceAteco && (
                 <p className="mt-1 text-sm text-red-600">{errors.codiceAteco.message}</p>
               )}
@@ -343,14 +375,23 @@ export default function StepCodiceATECO({ data, onDataChange, onNext, onPrev }: 
             <label htmlFor="form-descrizione" className="block text-sm font-medium text-gray-700 mb-2">
               Descrizione Attività
             </label>
-            <textarea
-              id="form-descrizione"
-              {...register('descrizioneAttivita')}
-              readOnly
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-              placeholder="La descrizione apparirà automaticamente"
-            />
+            <div className="relative">
+              <textarea
+                id="form-descrizione"
+                {...register('descrizioneAttivita')}
+                readOnly
+                rows={3}
+                className={`w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600 ${
+                  codiceSelezionato 
+                    ? 'border-green-300 bg-green-50 text-green-800' 
+                    : 'border-gray-300'
+                }`}
+                placeholder="La descrizione apparirà automaticamente"
+              />
+              {codiceSelezionato && (
+                <CheckCircleIcon className="absolute right-3 top-3 w-5 h-5 text-green-600" />
+              )}
+            </div>
             {errors.descrizioneAttivita && (
               <p className="mt-1 text-sm text-red-600">{errors.descrizioneAttivita.message}</p>
             )}

@@ -150,6 +150,11 @@ export default function StepRisultati({ data, onComplete }: Props) {
 
   // Usa direttamente i dati dall'API (risultato contiene già tutto)
   const formatCurrency = (value: number) => {
+    // Gestisci valori non validi
+    if (!value || isNaN(value) || !isFinite(value)) {
+      value = 0;
+    }
+    
     return new Intl.NumberFormat('it-IT', {
       style: 'currency',
       currency: 'EUR',
@@ -328,14 +333,22 @@ export default function StepRisultati({ data, onComplete }: Props) {
                     <span className="text-gray-600">INAIL</span>
                     <span className="font-semibold">{formatCurrency(risultato.contributi.inail)}</span>
                   </div>
-                  {risultato.contributi.sconto > 0 && (
+                  {risultato.agevolazioniApplicate && risultato.agevolazioniApplicate.scontoEffettivo > 0 && (
                     <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                       <div className="flex justify-between items-center text-green-700">
-                        <span className="font-medium">Sconto {risultato.contributi.sconto}% (primo anno)</span>
-                        <span className="font-semibold">-{formatCurrency((risultato.contributi.inps + risultato.contributi.cassaProfessionale) / (1 - risultato.contributi.sconto/100) * (risultato.contributi.sconto/100))}</span>
+                        <span className="font-medium">
+                          Sconto {risultato.agevolazioniApplicate.scontoEffettivo}% 
+                          {risultato.agevolazioniApplicate.scontoContributiPrimoAnno ? ' (primo anno)' : ''}
+                        </span>
+                        <span className="font-semibold">-{formatCurrency(risultato.agevolazioniApplicate.importoScontato || 0)}</span>
                       </div>
                       <p className="text-xs text-green-600 mt-1">
-                        Agevolazione per nuove attività in regime forfettario
+                        {risultato.agevolazioniApplicate.scontoContributiPrimoAnno 
+                          ? 'Agevolazione per nuove attività' 
+                          : risultato.agevolazioniApplicate.scontoGestartigiani 
+                            ? 'Sconto gestione artigiani/commercianti'
+                            : 'Agevolazione contributiva'
+                        }
                       </p>
                     </div>
                   )}

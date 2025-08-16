@@ -26,6 +26,11 @@ export default function StepRiepilogo({ data, onNext, onPrev, isLoading, setIsLo
   };
 
   const formatCurrency = (value: number) => {
+    // Gestisci valori non validi
+    if (!value || isNaN(value) || !isFinite(value)) {
+      value = 0;
+    }
+    
     return new Intl.NumberFormat('it-IT', {
       style: 'currency',
       currency: 'EUR',
