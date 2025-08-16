@@ -7,8 +7,6 @@ import { z } from 'zod';
 import { UserIcon, InformationCircleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import SelettoreGeografico from './SelettoreGeografico';
 import { RegioneFiscale, ProvinciaFiscale, ComuneFiscale } from '@/lib/data/fiscale-territoriale';
-import ProgressiveHints from '@/lib/components/ProgressiveHints';
-import { stepDatiPersonaliHints, useHintsPreferences, getIntelligentHints } from '@/lib/data/step-hints';
 
 const datiPersonaliSchema = z.object({
   tipoSoggetto: z.enum(['persona_fisica', 'persona_giuridica'], {
@@ -86,31 +84,6 @@ export default function StepDatiPersonali({ data, onDataChange, onNext }: Props)
     provincia?: ProvinciaFiscale;
     comune?: ComuneFiscale;
   }>(data.datiPersonali?.localizzazione || {});
-
-  // Sistema di suggerimenti
-  const [showHints, setShowHints] = useState(false);
-  const hintsPrefs = useHintsPreferences();
-
-  useEffect(() => {
-    // Mostra automaticamente i suggerimenti per nuovi utenti
-    if (hintsPrefs.shouldShowHints('datiPersonali')) {
-      setShowHints(true);
-    }
-  }, []);
-
-  const handleHintsComplete = () => {
-    hintsPrefs.markHintsAsSeen('datiPersonali');
-    setShowHints(false);
-  };
-
-  const handleHintsSkip = () => {
-    hintsPrefs.markHintsAsSeen('datiPersonali');
-    setShowHints(false);
-  };
-
-  const toggleHints = () => {
-    setShowHints(!showHints);
-  };
 
   const {
     register,
@@ -193,18 +166,11 @@ export default function StepDatiPersonali({ data, onDataChange, onNext }: Props)
 
   return (
     <div id="step-dati-personali">
-      {/* Header con pulsante suggerimenti */}
-      <div className="flex justify-between items-center mb-6">
+      {/* Header */}
+      <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
           Dati Personali
         </h2>
-        <button
-          onClick={toggleHints}
-          className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-        >
-          <LightBulbIcon className="w-4 h-4 mr-2" />
-          Suggerimenti
-        </button>
       </div>
 
       <form onSubmit={handleFormSubmit} className="space-y-8">
@@ -494,15 +460,6 @@ export default function StepDatiPersonali({ data, onDataChange, onNext }: Props)
           )}
         </div>
       </form>
-
-      {/* Sistema di suggerimenti progressivi */}
-      <ProgressiveHints
-        hints={getIntelligentHints(data, 'datiPersonali')}
-        isActive={showHints}
-        onComplete={handleHintsComplete}
-        onSkip={handleHintsSkip}
-        stepId="datiPersonali"
-      />
     </div>
   );
 } 
